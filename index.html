@@ -42,7 +42,10 @@
   --sidebar-w: 244px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, sans-serif; font-size: 15px; line-height: 1.45; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; }
+html, body { background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, sans-serif; font-size: 15px; line-height: 1.45; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; overflow-x: hidden; max-width: 100%; }
+canvas { max-width: 100% !important; }
+.grid > *, .kpi-grid > *, .split > *, .sum-strip > *, .proj-grid > * { min-width: 0; }
+.rec-text, .rec-title, .goal-name, .li-name, .mov-desc, .setting-desc { overflow-wrap: anywhere; }
 body { padding-bottom: 0; }
 .display { font-family: 'Bricolage Grotesque', sans-serif; letter-spacing: -0.02em; line-height: 1.02; }
 .num { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -129,7 +132,7 @@ header.scrolled { box-shadow: 0 1px 0 var(--line); background: rgba(233,236,231,
 .hero-cur { font-size: 20px; color: #7FA594; margin-right: 5px; }
 .hero-sub { font-size: 13px; color: #A9B7AF; margin-top: 12px; position: relative; }
 .hero-sub strong { color: #F3F5F1; font-weight: 600; }
-.hero-meta { display: flex; gap: 22px; margin-top: 18px; position: relative; }
+.hero-meta { display: flex; flex-wrap: wrap; gap: 18px 22px; margin-top: 18px; position: relative; }
 .hero-meta .hm { }
 .hero-meta .hm .k { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #7FA594; font-weight: 600; display: flex; align-items: center; gap: 5px; }
 .hero-meta .hm .v { font-family: 'IBM Plex Mono'; font-variant-numeric: tabular-nums; font-size: 18px; margin-top: 3px; }
@@ -256,15 +259,21 @@ section.block { margin-bottom: 20px; }
 .goal-cur { font-family: 'IBM Plex Mono'; font-variant-numeric: tabular-nums; font-size: 17px; color: var(--ink); }
 .goal-pct { color: var(--green); font-weight: 700; font-family: 'IBM Plex Mono'; }
 .goal-actions { display: flex; gap: 7px; margin-top: 13px; flex-wrap: wrap; }
+.goal-msg { font-size: 12.5px; line-height: 1.5; padding: 10px 12px; border-radius: 10px; margin-top: 12px; }
+.goal-msg strong { font-family: 'IBM Plex Mono'; }
+.goal-msg.ok { background: var(--green-soft); color: var(--green-ink); }
+.goal-msg.warn { background: var(--amber-soft); color: #8A6410; }
+.goal-msg.bad { background: var(--clay-soft); color: #8F3218; }
+.goal-msg.info { background: var(--surface-2); color: var(--ink-2); }
 .goal-actions button { flex: 1; min-width: 60px; padding: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: 9px; font-size: 12px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
 .goal-actions button:hover { background: var(--surface-2); }
 .goal-actions button.del { color: var(--clay); border-color: var(--clay-soft); }
 
 /* Projection */
-.proj-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-top: 14px; }
-.proj-cell { text-align: center; padding: 14px 8px; background: var(--surface-2); border-radius: var(--radius-sm); }
-.proj-cell .p-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
-.proj-cell .p-val { font-family: 'IBM Plex Mono'; font-variant-numeric: tabular-nums; font-size: 19px; margin-top: 5px; }
+.proj-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-top: 14px; }
+.proj-cell { text-align: center; padding: 13px 5px; background: var(--surface-2); border-radius: var(--radius-sm); min-width: 0; }
+.proj-cell .p-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.proj-cell .p-val { font-family: 'IBM Plex Mono'; font-variant-numeric: tabular-nums; font-size: 15px; margin-top: 5px; overflow-wrap: anywhere; line-height: 1.15; }
 .proj-note { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.55; }
 
 /* Recommendations */
@@ -736,6 +745,18 @@ section.block { margin-bottom: 20px; }
       <div class="field"><label>Día de pago</label><input type="number" id="fixedDay" min="1" max="31" placeholder="Ej: 15"></div>
     </div>
     <div class="mini-hint" id="fixedFxHint" style="display:none;"></div>
+    <div class="field"><label>¿Por cuánto tiempo?</label>
+      <select id="fixedTerm">
+        <option value="indef">Indefinido (hasta que lo borre)</option>
+        <option value="3">3 meses</option>
+        <option value="6">6 meses</option>
+        <option value="12">12 meses</option>
+        <option value="18">18 meses</option>
+        <option value="24">24 meses</option>
+        <option value="36">36 meses</option>
+      </select>
+      <div class="setting-desc" style="margin-top:6px;">Si eliges un plazo (ej. un crédito a 12 meses), el gasto fijo se elimina solo cuando termine.</div>
+    </div>
     <div class="field"><label>Categoría</label><div class="cat-picker" id="fixedCatPicker"></div></div>
     <div class="field"><label>Método de pago habitual</label><div class="method-picker" id="fixedMethodPicker"></div></div>
     <button class="btn green" id="saveFixed">Guardar</button>
@@ -959,6 +980,7 @@ function subscribeToData(uid) {
       };
     }
     setSyncStatus('ok');
+    if (purgeExpiredFixed()) { saveState(); return; }
     renderAll();
   }, (err) => { console.error(err); setSyncStatus('offline'); showToast('Error de conexión'); });
 }
@@ -1000,6 +1022,15 @@ function dueText(dueDay, prefix='Vence el') {
   return `${prefix} ${dueDay} de ${MONTHS[m]}`;
 }
 function fxRate() { return parseFloat(STATE.settings.fxRate) || 3.75; }
+function realMonthKey() { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`; }
+function addMonthsKey(key, n) { const [y,m] = key.split('-').map(Number); const d = new Date(y, m-1+n, 1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function fixedEndMonth(f) { if (!f.termMonths || !f.startMonth) return null; return addMonthsKey(f.startMonth, f.termMonths - 1); }
+function purgeExpiredFixed() {
+  const rk = realMonthKey();
+  const before = STATE.fixedExpenses.length;
+  STATE.fixedExpenses = STATE.fixedExpenses.filter(f => { const em = fixedEndMonth(f); return !em || em >= rk; });
+  return STATE.fixedExpenses.length !== before;
+}
 
 // ============ HEADER ============
 function renderHeader() {
@@ -1193,7 +1224,9 @@ function renderFixed() {
     else status='<span class="st-pending">Pendiente</span>';
     const usd = f.currency==='USD' ? ` · <span style="color:var(--blue);">$ ${fmt(f.origAmount)}</span>` : '';
     const dueLabel = f.dueDay ? ` · Vence el ${f.dueDay} de ${MONTHS[currentMonth.getMonth()].substring(0,3)}.` : '';
-    return `<div class="li-card"><div class="li-top"><div class="li-icon" style="background:${c.color}1f;">${c.icon}</div><div class="li-body"><div class="li-name">${escapeHtml(f.name)}</div><div class="li-sub">${c.name}${dueLabel}${usd}</div></div><div><div class="li-amt num">S/ ${fmt(f.amount)}</div><div class="li-status">${status}</div></div></div><div class="li-actions">${paid?'':`<button class="primary" data-paid="${f.id}">Marcar pagado</button>`}<button data-editf="${f.id}">Editar</button><button class="del" data-delf="${f.id}">Borrar</button></div></div>`;
+    let termLabel = '';
+    if (f.termMonths && f.startMonth) { const em = fixedEndMonth(f); const [ey,emo]=em.split('-').map(Number); const rk=realMonthKey(); const remain = Math.max(0, (ey*12+(emo-1)) - (parseInt(rk.split('-')[0])*12 + (parseInt(rk.split('-')[1])-1)) + 1); termLabel = `<span class="method-tag" style="background:var(--surface-2);">⏳ ${remain} ${remain===1?'pago':'pagos'} rest.</span>`; }
+    return `<div class="li-card"><div class="li-top"><div class="li-icon" style="background:${c.color}1f;">${c.icon}</div><div class="li-body"><div class="li-name">${escapeHtml(f.name)} ${termLabel}</div><div class="li-sub">${c.name}${dueLabel}${usd}</div></div><div><div class="li-amt num">S/ ${fmt(f.amount)}</div><div class="li-status">${status}</div></div></div><div class="li-actions">${paid?'':`<button class="primary" data-paid="${f.id}">Marcar pagado</button>`}<button data-editf="${f.id}">Editar</button><button class="del" data-delf="${f.id}">Borrar</button></div></div>`;
   }).join('');
   el.querySelectorAll('[data-paid]').forEach(b=>b.addEventListener('click',()=>markFixedPaid(b.dataset.paid)));
   el.querySelectorAll('[data-editf]').forEach(b=>b.addEventListener('click',()=>editFixed(b.dataset.editf)));
@@ -1340,13 +1373,29 @@ function renderRecommendations(baseIn, svA) {
 // ============ GOALS ============
 function renderGoals() {
   const monthTx=getMonthTx(currentMonth);
-  const inn=sumBy(monthTx,'in'); const saved=inn-sumBy(monthTx,'out');
-  const pct=STATE.goals.generalPct||20;
+  const inn=sumBy(monthTx,'in'); const out=sumBy(monthTx,'out'); const saved=inn-out;
+  const B=STATE.settings.budget||{needs:50,wants:30,savings:20};
+  const pct=B.savings||STATE.goals.generalPct||20;
   const base=inn>0?inn:STATE.settings.sueldo;
   const target=base*(pct/100);
   const pg=target>0?Math.min(100,Math.round((saved/target)*100)):0;
-  document.getElementById('generalGoal').innerHTML=`<div class="goal-head"><div><div class="goal-name">Ahorrar ${pct}% del ingreso</div><div class="goal-target">Meta del mes: S/ ${fmt(target)}</div></div><div class="goal-pct">${pg}%</div></div><div class="goal-bar amber"><div style="width:${Math.max(0,pg)}%;"></div></div><div class="goal-foot"><span>Ahorrado: <span class="goal-cur">S/ ${fmt(Math.max(0,saved))}</span></span><span>de S/ ${fmt(target)}</span></div><div class="goal-actions"><button id="adjGeneral">Ajustar %</button></div>`;
-  document.getElementById('adjGeneral').addEventListener('click',openGeneralGoalModal);
+  const baseLbl = inn>0 ? 'de tus ingresos del mes' : 'de tu sueldo referencial';
+  // Coherent status message
+  let statusMsg;
+  if (inn===0 && out===0) statusMsg = `<div class="goal-msg info">Registra tus ingresos y gastos del mes para ver tu avance.</div>`;
+  else if (saved < 0) statusMsg = `<div class="goal-msg bad">⚠ Este mes gastaste S/ ${fmt(Math.abs(saved))} más de lo que ingresó. No alcanzó para ahorrar; primero equilibra tus gastos.</div>`;
+  else if (saved < target) statusMsg = `<div class="goal-msg warn">Te faltan <strong>S/ ${fmt(target-saved)}</strong> para llegar a tu meta de ahorro de este mes. Revisa tus gastos variables.</div>`;
+  else statusMsg = `<div class="goal-msg ok">✓ ¡Meta cumplida! Ahorraste S/ ${fmt(saved)}${saved>target?` (S/ ${fmt(saved-target)} por encima)`:''}.</div>`;
+  document.getElementById('generalGoal').innerHTML=`
+    <div class="goal-head">
+      <div><div class="goal-name">Ahorrar ${pct}% ${baseLbl}</div><div class="goal-target">Meta del mes: S/ ${fmt(target)} · base S/ ${fmt(base)}</div></div>
+      <div class="goal-pct">${pg}%</div>
+    </div>
+    <div class="goal-bar amber"><div style="width:${Math.max(0,pg)}%;"></div></div>
+    <div class="goal-foot"><span>Ahorrado real: <span class="goal-cur">S/ ${fmt(saved)}</span></span><span>meta S/ ${fmt(target)}</span></div>
+    ${statusMsg}
+    <div class="goal-actions"><button id="adjGeneral">Ajustar % en Ajustes</button></div>`;
+  document.getElementById('adjGeneral').addEventListener('click',()=>switchView('ajustes'));
   const sp=document.getElementById('specificGoals');
   if (!STATE.goals.specific||STATE.goals.specific.length===0){ sp.innerHTML='<div class="card empty"><div class="em-text">Sin metas específicas.<br>Toca "+ Nueva meta" para crear una.</div></div>'; return; }
   sp.innerHTML=STATE.goals.specific.map(g=>{ const p=g.target>0?Math.min(100,Math.round((g.current/g.target)*100)):0;
@@ -1416,6 +1465,7 @@ function openFixedModal(edit=null){ editingFixedId=edit?edit.id:null; fixedCat=e
   document.getElementById('fixedName').value=edit?edit.name:'';
   document.getElementById('fixedAmount').value=edit?(edit.currency==='USD'?edit.origAmount:edit.amount):'';
   document.getElementById('fixedDay').value=edit?(edit.dueDay||''):'';
+  document.getElementById('fixedTerm').value=edit&&edit.termMonths?String(edit.termMonths):'indef';
   renderFixedCatPicker(); renderFixedMethodPicker(); renderFixedCur();
   document.getElementById('modalFixed').classList.add('open'); }
 function renderFixedCur(){ document.querySelectorAll('#fixedCurSwitch button').forEach(b=>b.classList.toggle('active',b.dataset.cur===fixedCurrency)); document.getElementById('fixedAmountLbl').textContent = fixedCurrency==='USD'?'Monto ($)':'Monto (S/)'; const h=document.getElementById('fixedFxHint'); if(fixedCurrency==='USD'){ h.style.display='block'; h.innerHTML=`Se convertirá a soles al pagar · 1 USD = <strong>S/ ${fmt(fxRate())}</strong>`; } else h.style.display='none'; }
@@ -1426,10 +1476,12 @@ function renderFixedMethodPicker(){ document.getElementById('fixedMethodPicker')
 async function saveFixed(){ const name=document.getElementById('fixedName').value.trim(); const raw=parseFloat(document.getElementById('fixedAmount').value); let dueDay=parseInt(document.getElementById('fixedDay').value)||null;
   if(!name){ showToast('Ponle un nombre'); return; } if(!raw||raw<=0){ showToast('Ingresa un monto válido'); return; }
   if(dueDay!==null && (dueDay<1||dueDay>31)){ showToast('El día debe estar entre 1 y 31'); return; }
+  const termVal=document.getElementById('fixedTerm').value;
+  const termMonths = termVal==='indef' ? null : parseInt(termVal);
   let amount=raw, currency='PEN', origAmount=null, rate=null;
   if(fixedCurrency==='USD'){ currency='USD'; origAmount=raw; rate=fxRate(); amount=Math.round(raw*rate*100)/100; }
-  if(editingFixedId){ const f=STATE.fixedExpenses.find(x=>x.id===editingFixedId); if(f){ f.name=name; f.amount=amount; f.dueDay=dueDay; f.category=fixedCat; f.method=fixedMethod; f.currency=currency; f.origAmount=origAmount; f.fxRate=rate; } }
-  else STATE.fixedExpenses.push({id:uid(),name,amount,dueDay,category:fixedCat,method:fixedMethod,currency,origAmount,fxRate:rate,active:true});
+  if(editingFixedId){ const f=STATE.fixedExpenses.find(x=>x.id===editingFixedId); if(f){ f.name=name; f.amount=amount; f.dueDay=dueDay; f.category=fixedCat; f.method=fixedMethod; f.currency=currency; f.origAmount=origAmount; f.fxRate=rate; f.termMonths=termMonths; if(termMonths && !f.startMonth) f.startMonth=realMonthKey(); if(!termMonths){ f.startMonth=null; } } }
+  else STATE.fixedExpenses.push({id:uid(),name,amount,dueDay,category:fixedCat,method:fixedMethod,currency,origAmount,fxRate:rate,termMonths,startMonth:termMonths?realMonthKey():null,active:true});
   await saveState(); document.getElementById('modalFixed').classList.remove('open'); showToast('Gasto fijo guardado'); }
 
 // ============ MODALS: DEBT ============
