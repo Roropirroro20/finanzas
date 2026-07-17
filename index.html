@@ -42,8 +42,7 @@
   --sidebar-w: 244px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html { overflow-x: hidden; }
-html, body { background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, sans-serif; font-size: 15px; line-height: 1.45; overscroll-behavior-y: none; -webkit-font-smoothing: antialiased; }
+html, body { background: var(--bg); color: var(--ink); font-family: 'Inter', -apple-system, sans-serif; font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
 body { overflow-x: hidden; }
 canvas { max-width: 100% !important; }
 .grid > *, .kpi-grid > *, .split > *, .sum-strip > *, .proj-grid > * { min-width: 0; }
@@ -341,18 +340,22 @@ section.block { margin-bottom: 20px; }
 .type-toggle button.active.in { background: var(--surface); color: var(--green); box-shadow: var(--shadow-sm); }
 .type-toggle button.active.out { background: var(--surface); color: var(--clay); box-shadow: var(--shadow-sm); }
 
-/* Tutorial */
-.tut-bg { position: fixed; inset: 0; background: rgba(22,33,28,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 24px; }
-.tut-bg.open { display: flex; }
-.tut-card { background: var(--surface); border-radius: 22px; max-width: 380px; width: 100%; padding: 30px 26px 22px; text-align: center; box-shadow: var(--shadow-lg); animation: pop .25s ease-out; }
-.tut-emoji { font-size: 46px; margin-bottom: 14px; }
-.tut-title { font-family: 'Bricolage Grotesque'; font-weight: 700; font-size: 24px; margin-bottom: 10px; }
-.tut-text { font-size: 14px; color: var(--ink-2); line-height: 1.6; margin-bottom: 20px; }
-.tut-text strong { color: var(--ink); }
-.tut-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
-.tut-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background .2s, width .2s; }
-.tut-dots span.active { background: var(--green); width: 20px; border-radius: 4px; }
-.tut-actions { display: flex; gap: 10px; }
+/* Tutorial coach marks */
+.coach { position: fixed; inset: 0; z-index: 300; display: none; }
+.coach.open { display: block; }
+.coach-spot { position: absolute; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(22,33,28,0.74); transition: left .32s cubic-bezier(.2,.8,.2,1), top .32s cubic-bezier(.2,.8,.2,1), width .32s, height .32s; pointer-events: none; }
+.coach-bubble { position: absolute; background: var(--surface); border-radius: 16px; padding: 18px; width: min(330px, calc(100vw - 32px)); box-shadow: var(--shadow-lg); pointer-events: auto; transition: left .28s ease, top .28s ease; }
+.coach-emoji { font-size: 30px; margin-bottom: 6px; line-height: 1; }
+.coach-title { font-family: 'Bricolage Grotesque'; font-weight: 700; font-size: 19px; margin-bottom: 6px; }
+.coach-text { font-size: 13.5px; color: var(--ink-2); line-height: 1.55; margin-bottom: 15px; }
+.coach-text strong { color: var(--ink); }
+.coach-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.coach-dots { display: flex; gap: 5px; }
+.coach-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--line); transition: all .2s; }
+.coach-dots span.active { background: var(--green); width: 16px; border-radius: 3px; }
+.coach-btns { display: flex; gap: 6px; }
+.coach-btns button { padding: 9px 15px; border-radius: 9px; border: 1px solid var(--line); background: var(--surface); font-size: 13px; font-weight: 600; cursor: pointer; color: var(--ink-2); }
+.coach-btns button.primary { background: var(--green); color: #fff; border-color: var(--green); }
 .author-legend { text-align: center; font-size: 12px; color: var(--muted); padding: 8px 0 20px; }
 .author-legend strong { color: var(--ink-2); font-weight: 600; }
 .year-nav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-bottom: 16px; }
@@ -864,16 +867,16 @@ section.block { margin-bottom: 20px; }
   </div>
 </div>
 
-<!-- TUTORIAL -->
-<div class="tut-bg" id="tutBg">
-  <div class="tut-card">
-    <div class="tut-emoji" id="tutEmoji">👋</div>
-    <div class="tut-title" id="tutTitle">Bienvenido</div>
-    <div class="tut-text" id="tutText">Texto</div>
-    <div class="tut-dots" id="tutDots"></div>
-    <div class="tut-actions">
-      <button class="btn ghost" id="tutSkip" style="flex:1;">Saltar</button>
-      <button class="btn green" id="tutNext" style="flex:2;">Siguiente</button>
+<!-- TUTORIAL (coach marks) -->
+<div class="coach" id="coach">
+  <div class="coach-spot" id="coachSpot"></div>
+  <div class="coach-bubble" id="coachBubble">
+    <div class="coach-emoji" id="coachEmoji">👋</div>
+    <div class="coach-title" id="coachTitle">Bienvenido</div>
+    <div class="coach-text" id="coachText">Texto</div>
+    <div class="coach-foot">
+      <div class="coach-dots" id="coachDots"></div>
+      <div class="coach-btns"><button id="coachSkip">Saltar</button><button id="coachNext" class="primary">Siguiente</button></div>
     </div>
   </div>
 </div>
@@ -971,6 +974,9 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('app').classList.add('ready');
     setupUserProfile(user);
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-inicio').classList.add('active');
+    document.querySelectorAll('.tab,.sb-item').forEach(t=>t.classList.toggle('active',t.dataset.view==='inicio'));
     subscribeToData(user.uid);
   } else {
     currentUser = null;
@@ -1019,9 +1025,9 @@ function subscribeToData(uid) {
       };
     }
     setSyncStatus('ok');
-    if (purgeExpiredFixed()) { saveState(); return; }
+    if (purgeExpiredFixed() || migrateCreatedMonth()) { saveState(); return; }
     renderAll();
-    if (!STATE.settings.tutorialSeen && !document.getElementById('tutBg').classList.contains('open')) { setTimeout(openTutorial, 600); }
+    if (!STATE.settings.tutorialSeen && !document.getElementById('coach').classList.contains('open')) { setTimeout(openTutorial, 700); }
   }, (err) => { console.error(err); setSyncStatus('offline'); showToast('Error de conexión'); });
 }
 async function saveState() {
@@ -1072,6 +1078,13 @@ function purgeExpiredFixed() {
   const before = STATE.fixedExpenses.length;
   STATE.fixedExpenses = STATE.fixedExpenses.filter(f => { const em = fixedEndMonth(f); return !em || em >= rk; });
   return STATE.fixedExpenses.length !== before;
+}
+function migrateCreatedMonth() {
+  const rk = realMonthKey();
+  let changed = false;
+  STATE.fixedExpenses.forEach(f => { if (!f.createdMonth) { f.createdMonth = rk; changed = true; } });
+  STATE.debts.forEach(d => { if (!d.createdMonth) { d.createdMonth = rk; changed = true; } });
+  return changed;
 }
 
 // ============ HEADER ============
@@ -1598,32 +1611,56 @@ function exportCSV(){ if(STATE.transactions.length===0){ showToast('No hay movim
   const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`finanzas_${todayStr()}.csv`; a.click(); URL.revokeObjectURL(url); showToast('CSV descargado'); }
 async function resetAll(){ if(!confirm('¿Borrar TODOS los datos? Irreversible.')) return; if(!confirm('Última confirmación: se perderá todo.')) return; STATE={transactions:[],fixedExpenses:[],debts:[],goals:{generalPct:20,specific:[]},settings:{sueldo:1025,fxRate:3.75,budget:{needs:50,wants:30,savings:20}}}; await saveState(); showToast('Datos borrados'); }
 
-// ============ TUTORIAL ============
-const TUT_STEPS = [
-  { e:'👋', t:'¡Bienvenido a Mis Finanzas!', x:'Tu espacio para controlar ingresos, gastos, ahorros y deudas. Te muestro lo básico en 30 segundos.' },
-  { e:'➕', t:'Registra en segundos', x:'Toca el botón <strong>+</strong> para agregar un ingreso o egreso. Elige el monto, la categoría, el método de pago y listo. Puedes usar soles o dólares.' },
-  { e:'◧', t:'Tu resumen en Inicio', x:'Verás tu <strong>balance del mes</strong>, gastos por categoría, tu salud financiera y los próximos vencimientos. Cambia de mes tocando el nombre del mes arriba.' },
-  { e:'◇', t:'Compromisos', x:'Registra tus <strong>gastos fijos</strong> (Netflix, teléfono, créditos) y tus <strong>deudas</strong>. Cuando marcas algo como pagado, se descuenta solo de tu balance.' },
-  { e:'◈', t:'Análisis y metas', x:'Mira proyecciones de ingreso y ahorro, recomendaciones según tus números, y define tu <strong>meta de ahorro</strong> mensual.' },
-  { e:'⚙️', t:'Todo bajo control', x:'En <strong>Ajustes</strong> configuras tu sueldo, el tipo de cambio del dólar y tus porcentajes de presupuesto. Tus datos se sincronizan entre tu celular y tu laptop.<br><br>¡Listo para empezar!' },
+// ============ TUTORIAL (interactive coach marks) ============
+const COACH = [
+  { view:'inicio', sel:null, e:'👋', t:'¡Bienvenido a Mis Finanzas!', x:'Te muestro cómo funciona en pocos pasos. Voy a ir moviéndome por la app señalando cada parte.' },
+  { view:'inicio', sel:'#monthLabel', e:'📅', t:'Cambia de mes aquí', x:'Toca el nombre del mes para saltar a cualquier periodo y ver tus finanzas de ese mes.' },
+  { view:'inicio', sel:'#fab', e:'➕', t:'Registra en segundos', x:'Con este botón <strong>+</strong> agregas un ingreso o egreso: monto, categoría, método de pago y moneda.' },
+  { view:'inicio', sel:'.hero-card', e:'◧', t:'Tu balance del mes', x:'Aquí ves cuánto te queda y qué % llevas ahorrado. Más abajo tienes tus gastos por categoría y tu salud financiera.' },
+  { view:'compromisos', sel:'#compSeg', e:'◇', t:'Compromisos', x:'Tus <strong>gastos fijos</strong> (Netflix, teléfono, créditos) y tus <strong>deudas</strong>. Al marcarlos pagados se descuentan solos de tu balance.' },
+  { view:'analisis', sel:'#view-analisis .view-head', e:'◈', t:'Análisis y metas', x:'Proyecciones de ingreso y ahorro, recomendaciones según tus números, y tu meta de ahorro mensual.' },
+  { view:'ajustes', sel:'#cfgSueldo', e:'⚙️', t:'Configura tu perfil', x:'Aquí pones tu <strong>sueldo</strong>, el <strong>tipo de cambio</strong> del dólar y tus <strong>porcentajes</strong> de presupuesto.' },
+  { view:'inicio', sel:null, e:'✅', t:'¡Listo para empezar!', x:'Eso es todo. Registra tu primer movimiento con el botón +. Puedes repetir este tutorial desde Ajustes cuando quieras.' },
 ];
-let tutStep = 0;
-function openTutorial(){ tutStep=0; renderTutStep(); document.getElementById('tutBg').classList.add('open'); }
-function renderTutStep(){
-  const s=TUT_STEPS[tutStep];
-  document.getElementById('tutEmoji').textContent=s.e;
-  document.getElementById('tutTitle').textContent=s.t;
-  document.getElementById('tutText').innerHTML=s.x;
-  document.getElementById('tutDots').innerHTML=TUT_STEPS.map((_,i)=>`<span class="${i===tutStep?'active':''}"></span>`).join('');
-  document.getElementById('tutNext').textContent = tutStep===TUT_STEPS.length-1 ? 'Empezar' : 'Siguiente';
-  document.getElementById('tutSkip').style.display = tutStep===TUT_STEPS.length-1 ? 'none' : 'block';
+let coachStep = 0;
+function openTutorial(){ coachStep=0; document.getElementById('coach').classList.add('open'); showCoachStep(); }
+function showCoachStep(){ const s=COACH[coachStep]; switchView(s.view); setTimeout(()=>positionCoach(s), 280); }
+function positionCoach(s){
+  const spot=document.getElementById('coachSpot'), bubble=document.getElementById('coachBubble');
+  document.getElementById('coachEmoji').textContent=s.e;
+  document.getElementById('coachTitle').textContent=s.t;
+  document.getElementById('coachText').innerHTML=s.x;
+  document.getElementById('coachDots').innerHTML=COACH.map((_,i)=>`<span class="${i===coachStep?'active':''}"></span>`).join('');
+  document.getElementById('coachNext').textContent = coachStep===COACH.length-1 ? 'Empezar' : 'Siguiente';
+  document.getElementById('coachSkip').style.display = coachStep===COACH.length-1 ? 'none' : '';
+  const el = s.sel ? document.querySelector(s.sel) : null;
+  if(el){
+    el.scrollIntoView({block:'center', behavior:'smooth'});
+    setTimeout(()=>{
+      const r=el.getBoundingClientRect(); const pad=8;
+      spot.style.display='block';
+      spot.style.left=(r.left-pad)+'px'; spot.style.top=(r.top-pad)+'px';
+      spot.style.width=(r.width+pad*2)+'px'; spot.style.height=(r.height+pad*2)+'px';
+      const bh=bubble.offsetHeight||210, bw=bubble.offsetWidth||320;
+      let top = r.bottom+14;
+      if(top+bh > window.innerHeight-10) top = Math.max(10, r.top-bh-14);
+      let left = r.left + r.width/2 - bw/2;
+      left = Math.max(12, Math.min(left, window.innerWidth-bw-12));
+      bubble.style.left=left+'px'; bubble.style.top=top+'px'; bubble.style.transform='none';
+    }, 360);
+  } else {
+    spot.style.display='block';
+    spot.style.left='50%'; spot.style.top='-60px'; spot.style.width='0px'; spot.style.height='0px';
+    bubble.style.left='50%'; bubble.style.top='50%'; bubble.style.transform='translate(-50%,-50%)';
+  }
 }
-async function closeTutorial(markSeen){
-  document.getElementById('tutBg').classList.remove('open');
+async function closeCoach(markSeen){
+  document.getElementById('coach').classList.remove('open');
   if(markSeen && currentUser && !STATE.settings.tutorialSeen){ STATE.settings.tutorialSeen=true; await saveState(); }
 }
-document.getElementById('tutNext').addEventListener('click',()=>{ if(tutStep<TUT_STEPS.length-1){ tutStep++; renderTutStep(); } else closeTutorial(true); });
-document.getElementById('tutSkip').addEventListener('click',()=>closeTutorial(true));
+document.getElementById('coachNext').addEventListener('click',()=>{ if(coachStep<COACH.length-1){ coachStep++; showCoachStep(); } else closeCoach(true); });
+document.getElementById('coachSkip').addEventListener('click',()=>closeCoach(true));
+window.addEventListener('resize',()=>{ if(document.getElementById('coach').classList.contains('open')) positionCoach(COACH[coachStep]); });
 
 // ============ MONTH PICKER ============
 let pickerYear = new Date().getFullYear();
